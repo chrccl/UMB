@@ -1,4 +1,7 @@
 package it.chrccl.umb.repository;
 
-public interface UserRepository {
+import it.chrccl.umb.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, String> {
 }
