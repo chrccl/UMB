@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @Builder
@@ -21,26 +23,58 @@ public class PatientRecord {
     @JoinColumn(name = "patient_mobile_phone", referencedColumnName = "mobile_phone")
     private User patient;
 
+    @Enumerated(EnumType.STRING)
     private Issue issue;
 
-    // Fields inspired by your doc: duration, location, color, cause, treatments, diet, activity ...
-    private String mainGoal; // e.g. make less visible / prevent new
-    private String duration; // e.g. "1 year"
-    private String locations; // comma-separated or normalized as own table
-    private String color; // "red/violaceo" or "white/silver"
-    private String triggeringEvent; // pregnancy, growth, weight-change etc
-    private String weightChanges; // yes/no + notes
-    private String pastTreatments; // text
-    private String treatmentResults; // text
+    // Contact tracking fields
+    private LocalDateTime contactedDate;
+    private Boolean isContacted = false;
+
+    // Original fields from your existing model
+    private String mainGoal;
+    private String duration;
+    private String locations;
+    private String color;
+    private String triggeringEvent;
+    private String weightChanges;
+    private String pastTreatments;
+    private String treatmentResults;
     private String dietDescription;
     private String physicalActivity;
     private String knownDeficiencies;
-    private String medications; // e.g. cortisone
+    private String medications;
     private String smokingDrinking;
-    private String estimatedBudget; // es. "500-1000 euro", "sotto i 500", "oltre i 1000"
-    private String urgency; // es. "entro 1 mese", "entro 3 mesi", "non urgente"
-    private String interestLevel; // es. "molto interessato", "moderatamente interessato", "poco interessato"
-    private String consultationRequested; // "si", "no", "da valutare"
+    private String estimatedBudget;
+    private String urgency;
+    private String interestLevel;
+    private String consultationRequested;
     private String otherNotes;
 
+    // Additional fields for better dashboard functionality
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Helper method to determine if patient was contacted
+    public Boolean getIsContacted() {
+        return this.contactedDate != null;
+    }
+
+    // Helper method to mark as contacted
+    public void markAsContacted() {
+        this.contactedDate = LocalDateTime.now();
+        this.isContacted = true;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Helper method to mark as unread
+    public void markAsUnread() {
+        this.contactedDate = null;
+        this.isContacted = false;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
