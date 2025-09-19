@@ -1,5 +1,6 @@
 package it.chrccl.umb.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,6 +38,7 @@ public class Message {
 
     @ManyToOne
     @JoinColumn(name = "conversation_id")
+    @JsonBackReference   // 👈 prevent recursion
     private Conversation conversation;
 
     public Message(String text, String role, User fromUser, User toUser, Conversation conversation) {

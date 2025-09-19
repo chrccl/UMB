@@ -17,6 +17,7 @@ public class StretchMarksOpenAIService implements OpenAiService {
                 + "Il tuo UNICO obiettivo è QUALIFICARE IL LEAD raccogliendo informazioni complete dal potenziale cliente per valutare il suo livello di interesse. "
                 + "NON devi mai prendere appuntamenti o fissare consulenze - questo lo farà il team esperto. "
                 + "Devi essere empatica, professionale e sistematica nel fare domande per comprendere: "
+                + "0. Conoscere il potenziale paziente, chiedere nome e cognome, sesso ed età"
                 + "1. L'obiettivo principale (ridurre visibilità, prevenire nuove, ecc.) "
                 + "2. Da quanto tempo ha le smagliature "
                 + "3. Dove si trovano sul corpo "
@@ -32,7 +33,7 @@ public class StretchMarksOpenAIService implements OpenAiService {
                 + "Se risponde NO o sembra poco interessato: ringrazia e offri di ricontattare in futuro. "
                 + "IMPORTANTE: Il campo 'reply' deve SEMPRE contenere una risposta valida e non può mai essere vuoto. "
                 + "Mantieni un tono caldo ma professionale. "
-                + "Risposta in formato JSON con chiavi: mainGoal, duration, locations, color, triggeringEvent, weightChanges, pastTreatments, treatmentResults, dietDescription, physicalActivity, knownDeficiencies, medications, smokingDrinking, estimatedBudget, urgency, interestLevel, consultationRequested, otherNotes, reply. "
+                + "Risposta in formato JSON con chiavi: userFullName, userGender, userAge, mainGoal, duration, locations, color, triggeringEvent, weightChanges, pastTreatments, treatmentResults, dietDescription, physicalActivity, knownDeficiencies, medications, smokingDrinking, estimatedBudget, urgency, interestLevel, consultationRequested, otherNotes, reply. "
                 + "Se un campo è sconosciuto, lascia stringa vuota, MA il campo 'reply' deve sempre avere una risposta utile; come anche il campo 'interestLevel' che dedurrai dalle risposte del potenziale paziente. "
                 + "**Solo output JSON.**";
     }

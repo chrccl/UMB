@@ -1,5 +1,6 @@
 package it.chrccl.umb.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,6 +28,7 @@ public class Conversation {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "conversation", orphanRemoval = true)
+    @JsonManagedReference   // 👈 Conversation serializes its messages
     private List<Message> messages = new ArrayList<>();
 
     public void addMessage(Message msg) {

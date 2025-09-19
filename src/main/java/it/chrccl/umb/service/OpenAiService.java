@@ -76,9 +76,20 @@ public interface OpenAiService {
 
             JsonNode json = mapper.readTree(jsonText);
 
+            if(user.getFullName() == null || user.getSex() == null || user.getAge() == null) {
+                if(user.getFullName() == null){
+                    user.setFullName(getText(json, "userFullName"));
+                }else if(user.getAge() == null){
+                    user.setAge(getText(json, "userAge"));
+                }else{
+                    user.setSex(getText(json, "userGender"));
+                }
+
+            }
+
             PatientRecord pr = PatientRecord.builder()
                     .patient(user)
-                    .issue(getIssue())
+                    .issue(getIssue()) // Always set the issue from the service
                     .mainGoal(getText(json, "mainGoal"))
                     .duration(getText(json, "duration"))
                     .locations(getText(json, "locations"))
@@ -101,7 +112,13 @@ public interface OpenAiService {
 
             ExtractionResult er = new ExtractionResult();
             er.patientRecord = pr;
-            er.reply = getText(json, "reply");
+
+            // Ensure reply is not empty
+            String reply = getText(json, "reply");
+            if (reply == null || reply.trim().isEmpty()) {
+                reply = "Grazie per il tuo messaggio. Come posso aiutarti ulteriormente?";
+            }
+            er.reply = reply;
 
             return er;
         } catch (Exception e) {
@@ -109,7 +126,7 @@ public interface OpenAiService {
             ExtractionResult fallback = new ExtractionResult();
             fallback.patientRecord = PatientRecord.builder()
                     .patient(user)
-                    .issue(getIssue())
+                    .issue(getIssue()) // Always set the issue even in fallback
                     .build();
             fallback.reply = "Mi dispiace, ho avuto un problema tecnico. Puoi ripetere il tuo messaggio?";
 
@@ -122,20 +139,27 @@ public interface OpenAiService {
     }
 
     default String getText(JsonNode n, String key) {
-        return n.has(key) && !n.get(key).isNull() ? n.get(key).asText() : "";
+        if (n == null || !n.has(key) || n.get(key).isNull()) {
+            return "";
+        }
+        String text = n.get(key).asText();
+        return text != null ? text.trim() : "";
     }
 
     default String extractJson(String s) {
+        if (s == null) return "{}";
+
         int first = s.indexOf('{');
         int last = s.lastIndexOf('}');
         if (first >= 0 && last >= 0 && last > first) {
             return s.substring(first, last + 1);
         } else {
-            return s;
+            // If no JSON found, return empty JSON object
+            return "{}";
         }
     }
 
     String getSystemPrompt();
     Issue getIssue();
-    OpenAIConfig getConfig(); // New method to get injected config
+    OpenAIConfig getConfig(); // Method to get injected config
 }

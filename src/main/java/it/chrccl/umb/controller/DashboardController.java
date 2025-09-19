@@ -57,20 +57,20 @@ public class DashboardController {
 
             Conversation conversation = conversationOpt.get();
 
-            // Find or create a PatientRecord for this conversation and mark it as contacted
-            List<PatientRecord> records = patientRecordRepository.findAll().stream()
-                    .filter(pr -> pr.getPatient() != null &&
-                            pr.getPatient().getMobilePhone().equals(conversation.getUser().getMobilePhone()))
-                    .toList();
+            // Find PatientRecord for this conversation using the new repository method
+            Optional<PatientRecord> recordOpt = patientRecordRepository
+                    .findByPatientMobilePhone(conversation.getUser().getMobilePhone());
 
-            if (!records.isEmpty()) {
-                PatientRecord record = records.get(0);
-                record.markAsContacted(); // Using the new method from enhanced entity
+            if (recordOpt.isPresent()) {
+                PatientRecord record = recordOpt.get();
+                record.markAsContacted(); // Using the method from enhanced entity
                 patientRecordRepository.save(record);
             }
 
             return ResponseEntity.ok(conversation);
         } catch (Exception e) {
+            System.err.println("Error marking conversation as contacted: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -89,20 +89,20 @@ public class DashboardController {
 
             Conversation conversation = conversationOpt.get();
 
-            // Remove contacted status from PatientRecord
-            List<PatientRecord> records = patientRecordRepository.findAll().stream()
-                    .filter(pr -> pr.getPatient() != null &&
-                            pr.getPatient().getMobilePhone().equals(conversation.getUser().getMobilePhone()))
-                    .toList();
+            // Find PatientRecord for this conversation using the new repository method
+            Optional<PatientRecord> recordOpt = patientRecordRepository
+                    .findByPatientMobilePhone(conversation.getUser().getMobilePhone());
 
-            if (!records.isEmpty()) {
-                PatientRecord record = records.get(0);
-                record.markAsUnread(); // Using the new method from enhanced entity
+            if (recordOpt.isPresent()) {
+                PatientRecord record = recordOpt.get();
+                record.markAsUnread(); // Using the method from enhanced entity
                 patientRecordRepository.save(record);
             }
 
             return ResponseEntity.ok(conversation);
         } catch (Exception e) {
+            System.err.println("Error marking conversation as unread: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -112,11 +112,17 @@ public class DashboardController {
      */
     @DeleteMapping("/conversations/{id}")
     public ResponseEntity<Void> deleteConversation(@PathVariable Long id) {
-        if (conversationRepository.existsById(id)) {
-            conversationRepository.deleteById(id);
-            return ResponseEntity.ok().build();
+        try {
+            if (conversationRepository.existsById(id)) {
+                conversationRepository.deleteById(id);
+                return ResponseEntity.ok().build();
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            System.err.println("Error deleting conversation: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
-        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -124,25 +130,29 @@ public class DashboardController {
      */
     @GetMapping("/patient-records/conversation/{conversationId}")
     public ResponseEntity<PatientRecord> getPatientRecordByConversation(@PathVariable Long conversationId) {
-        Optional<Conversation> conversationOpt = conversationRepository.findById(conversationId);
+        try {
+            Optional<Conversation> conversationOpt = conversationRepository.findById(conversationId);
 
-        if (conversationOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            if (conversationOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Conversation conversation = conversationOpt.get();
+
+            // Find patient record for this user using the new repository method
+            Optional<PatientRecord> recordOpt = patientRecordRepository
+                    .findByPatientMobilePhone(conversation.getUser().getMobilePhone());
+
+            if (recordOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(recordOpt.get());
+        } catch (Exception e) {
+            System.err.println("Error retrieving patient record by conversation: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
-
-        Conversation conversation = conversationOpt.get();
-
-        // Find patient record for this user
-        List<PatientRecord> records = patientRecordRepository.findAll().stream()
-                .filter(pr -> pr.getPatient() != null &&
-                        pr.getPatient().getMobilePhone().equals(conversation.getUser().getMobilePhone()))
-                .toList();
-
-        if (records.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(records.get(0));
     }
 
     /**
@@ -150,7 +160,13 @@ public class DashboardController {
      */
     @GetMapping("/patient-records")
     public List<PatientRecord> getAllPatientRecords() {
-        return patientRecordRepository.findAll();
+        try {
+            return patientRecordRepository.findAll();
+        } catch (Exception e) {
+            System.err.println("Error retrieving all patient records: " + e.getMessage());
+            e.printStackTrace();
+            return List.of(); // Return empty list instead of throwing exception
+        }
     }
 
     /**
@@ -158,8 +174,14 @@ public class DashboardController {
      */
     @GetMapping("/patient-records/{id}")
     public ResponseEntity<PatientRecord> getPatientRecord(@PathVariable Long id) {
-        Optional<PatientRecord> record = patientRecordRepository.findById(id);
-        return record.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Optional<PatientRecord> record = patientRecordRepository.findById(id);
+            return record.map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            System.err.println("Error retrieving patient record by ID: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

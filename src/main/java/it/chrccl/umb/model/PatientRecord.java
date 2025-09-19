@@ -30,7 +30,6 @@ public class PatientRecord {
     private LocalDateTime contactedDate;
     private Boolean isContacted = false;
 
-    // Original fields from your existing model
     private String mainGoal;
     private String duration;
     private String locations;
@@ -59,6 +58,14 @@ public class PatientRecord {
         this.updatedAt = LocalDateTime.now();
     }
 
+    @PrePersist
+    public void prePersist() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // Helper method to determine if patient was contacted
     public Boolean getIsContacted() {
         return this.contactedDate != null;
@@ -75,6 +82,69 @@ public class PatientRecord {
     public void markAsUnread() {
         this.contactedDate = null;
         this.isContacted = false;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Helper method to update fields from another PatientRecord
+    public void updateFrom(PatientRecord other) {
+        if (other == null) return;
+        
+        // Only update non-null and non-empty values
+        if (other.getMainGoal() != null && !other.getMainGoal().trim().isEmpty()) {
+            this.mainGoal = other.getMainGoal();
+        }
+        if (other.getDuration() != null && !other.getDuration().trim().isEmpty()) {
+            this.duration = other.getDuration();
+        }
+        if (other.getLocations() != null && !other.getLocations().trim().isEmpty()) {
+            this.locations = other.getLocations();
+        }
+        if (other.getColor() != null && !other.getColor().trim().isEmpty()) {
+            this.color = other.getColor();
+        }
+        if (other.getTriggeringEvent() != null && !other.getTriggeringEvent().trim().isEmpty()) {
+            this.triggeringEvent = other.getTriggeringEvent();
+        }
+        if (other.getWeightChanges() != null && !other.getWeightChanges().trim().isEmpty()) {
+            this.weightChanges = other.getWeightChanges();
+        }
+        if (other.getPastTreatments() != null && !other.getPastTreatments().trim().isEmpty()) {
+            this.pastTreatments = other.getPastTreatments();
+        }
+        if (other.getTreatmentResults() != null && !other.getTreatmentResults().trim().isEmpty()) {
+            this.treatmentResults = other.getTreatmentResults();
+        }
+        if (other.getDietDescription() != null && !other.getDietDescription().trim().isEmpty()) {
+            this.dietDescription = other.getDietDescription();
+        }
+        if (other.getPhysicalActivity() != null && !other.getPhysicalActivity().trim().isEmpty()) {
+            this.physicalActivity = other.getPhysicalActivity();
+        }
+        if (other.getKnownDeficiencies() != null && !other.getKnownDeficiencies().trim().isEmpty()) {
+            this.knownDeficiencies = other.getKnownDeficiencies();
+        }
+        if (other.getMedications() != null && !other.getMedications().trim().isEmpty()) {
+            this.medications = other.getMedications();
+        }
+        if (other.getSmokingDrinking() != null && !other.getSmokingDrinking().trim().isEmpty()) {
+            this.smokingDrinking = other.getSmokingDrinking();
+        }
+        if (other.getEstimatedBudget() != null && !other.getEstimatedBudget().trim().isEmpty()) {
+            this.estimatedBudget = other.getEstimatedBudget();
+        }
+        if (other.getUrgency() != null && !other.getUrgency().trim().isEmpty()) {
+            this.urgency = other.getUrgency();
+        }
+        if (other.getInterestLevel() != null && !other.getInterestLevel().trim().isEmpty()) {
+            this.interestLevel = other.getInterestLevel();
+        }
+        if (other.getConsultationRequested() != null && !other.getConsultationRequested().trim().isEmpty()) {
+            this.consultationRequested = other.getConsultationRequested();
+        }
+        if (other.getOtherNotes() != null && !other.getOtherNotes().trim().isEmpty()) {
+            this.otherNotes = other.getOtherNotes();
+        }
+        
         this.updatedAt = LocalDateTime.now();
     }
 }

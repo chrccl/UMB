@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -25,8 +24,7 @@ public class ChatbotService {
     private final MessageRepository messageRepository;
     private final PatientRecordRepository patientRecordRepository;
 
-    // map of all OpenAiService beans keyed by bean name (component name)
-    private final Map<String, OpenAiService> openAiServices;
+    private final StretchMarksOpenAIService stretchMarksOpenAIService;
 
     private final String twilioSid;
     private final String twilioAuth;
@@ -38,8 +36,7 @@ public class ChatbotService {
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
             PatientRecordRepository patientRecordRepository,
-            // Spring injects all beans implementing OpenAiService as a Map<beanName, bean>
-            Map<String, OpenAiService> openAiServices,
+            StretchMarksOpenAIService stretchMarksOpenAIService,
             @Value("${twilio.accountSid}") String twilioSid,
             @Value("${twilio.authToken}") String twilioAuth,
             @Value("${twilio.fromNumber}") String twilioFrom,
@@ -49,7 +46,7 @@ public class ChatbotService {
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.patientRecordRepository = patientRecordRepository;
-        this.openAiServices = Map.copyOf(openAiServices);
+        this.stretchMarksOpenAIService = stretchMarksOpenAIService;
         this.twilioSid = twilioSid;
         this.twilioAuth = twilioAuth;
         this.twilioFrom = twilioFrom;
@@ -67,7 +64,7 @@ public class ChatbotService {
      */
     @Transactional
     public void handleIncomingWhatsapp(String fromWhatsappNumber, String incomingText, String openAiServiceID) throws Exception {
-        OpenAiService openAiService = openAiServices.get(openAiServiceID);
+        OpenAiService openAiService = getOpenAiService(openAiServiceID);
         if (openAiService == null) throw new IllegalStateException("No OpenAiService implementations available");
 
         // Normalise numbers: Twilio uses "whatsapp:+123..."
@@ -120,8 +117,7 @@ public class ChatbotService {
         // Save patient record if not empty
         PatientRecord pr = result.patientRecord;
         if (pr != null) {
-            // Make sure patient reference is properly set
-            pr.setPatient(user);
+            userRepository.save(pr.getPatient());
             patientRecordRepository.save(pr);
         }
 
@@ -148,4 +144,10 @@ public class ChatbotService {
         );
         creator.create();
     }
+
+    private OpenAiService getOpenAiService(String openAiServiceID){
+        if(openAiServiceID.equals(Issue.STRETCHMARKS_SERVICE)) return stretchMarksOpenAIService;
+        return null;
+    }
+
 }
