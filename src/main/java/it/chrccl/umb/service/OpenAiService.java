@@ -92,6 +92,10 @@ public interface OpenAiService {
                     .knownDeficiencies(getText(json, "knownDeficiencies"))
                     .medications(getText(json, "medications"))
                     .smokingDrinking(getText(json, "smokingDrinking"))
+                    .estimatedBudget(getText(json, "estimatedBudget"))
+                    .urgency(getText(json, "urgency"))
+                    .interestLevel(getText(json, "interestLevel"))
+                    .consultationRequested(getText(json, "consultationRequested"))
                     .otherNotes(getText(json, "otherNotes"))
                     .build();
 

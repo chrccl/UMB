@@ -37,6 +37,10 @@ public class PatientRecord {
     private String knownDeficiencies;
     private String medications; // e.g. cortisone
     private String smokingDrinking;
+    private String estimatedBudget; // es. "500-1000 euro", "sotto i 500", "oltre i 1000"
+    private String urgency; // es. "entro 1 mese", "entro 3 mesi", "non urgente"
+    private String interestLevel; // es. "molto interessato", "moderatamente interessato", "poco interessato"
+    private String consultationRequested; // "si", "no", "da valutare"
     private String otherNotes;
 
 }
