@@ -27,6 +27,9 @@ public class Conversation {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Campo per tracciare quando il paziente è stato contattato
+    private LocalDateTime contactedDate;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "conversation", orphanRemoval = true)
     @JsonManagedReference   // 👈 Conversation serializes its messages
     private List<Message> messages = new ArrayList<>();

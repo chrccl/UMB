@@ -114,11 +114,26 @@ public class ChatbotService {
         // Call OpenAI to extract patient info and produce a reply
         OpenAiService.ExtractionResult result = openAiService.extractPatientRecordFromConversation(convoTexts, user);
 
-        // Save patient record if not empty
+        // CORREZIONE: Save/Update patient record to prevent duplicates
         PatientRecord pr = result.patientRecord;
         if (pr != null) {
             userRepository.save(pr.getPatient());
-            patientRecordRepository.save(pr);
+
+            // Check if a PatientRecord already exists for this patient and issue
+            Optional<PatientRecord> existingRecord = patientRecordRepository
+                    .findByPatientAndIssue(pr.getPatient(), pr.getIssue());
+
+            if (existingRecord.isPresent()) {
+                // Update existing record with new information
+                PatientRecord existing = existingRecord.get();
+                existing.updateFrom(pr); // Use the updateFrom method from PatientRecord
+                patientRecordRepository.save(existing);
+                System.out.println("Updated existing PatientRecord for patient: " + pr.getPatient().getMobilePhone());
+            } else {
+                // Save new record
+                patientRecordRepository.save(pr);
+                System.out.println("Created new PatientRecord for patient: " + pr.getPatient().getMobilePhone());
+            }
         }
 
         // Save bot message using simplified Message entity

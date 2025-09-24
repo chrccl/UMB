@@ -76,15 +76,36 @@ public interface OpenAiService {
 
             JsonNode json = mapper.readTree(jsonText);
 
-            if(user.getFullName() == null || user.getSex() == null || user.getAge() == null) {
-                if(user.getFullName() == null){
-                    user.setFullName(getText(json, "userFullName"));
-                }else if(user.getAge() == null){
-                    user.setAge(getText(json, "userAge"));
-                }else{
-                    user.setSex(getText(json, "userGender"));
-                }
+            // CORREZIONE: Aggiorna i campi User separatamente (non else-if concatenati)
+            boolean userUpdated = false;
 
+            if (user.getFullName() == null || user.getFullName().trim().isEmpty()) {
+                String fullName = getText(json, "userFullName");
+                if (!fullName.isEmpty()) {
+                    user.setFullName(fullName);
+                    userUpdated = true;
+                }
+            }
+
+            if (user.getAge() == null || user.getAge().trim().isEmpty()) {
+                String age = getText(json, "userAge");
+                if (!age.isEmpty()) {
+                    user.setAge(age);
+                    userUpdated = true;
+                }
+            }
+
+            if (user.getSex() == null || user.getSex().trim().isEmpty()) {
+                String sex = getText(json, "userGender");
+                if (!sex.isEmpty()) {
+                    user.setSex(sex);
+                    userUpdated = true;
+                }
+            }
+
+            if (userUpdated) {
+                System.out.println("Updated user info: Name=" + user.getFullName() +
+                        ", Age=" + user.getAge() + ", Sex=" + user.getSex());
             }
 
             PatientRecord pr = PatientRecord.builder()
@@ -107,6 +128,8 @@ public interface OpenAiService {
                     .urgency(getText(json, "urgency"))
                     .interestLevel(getText(json, "interestLevel"))
                     .consultationRequested(getText(json, "consultationRequested"))
+                    // AGGIUNTO: Campo per orario preferito contatto
+                    .preferredContactTime(getText(json, "preferredContactTime"))
                     .otherNotes(getText(json, "otherNotes"))
                     .build();
 

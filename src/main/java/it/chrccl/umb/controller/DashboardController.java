@@ -57,13 +57,17 @@ public class DashboardController {
 
             Conversation conversation = conversationOpt.get();
 
-            // Find PatientRecord for this conversation using the new repository method
+            // CORREZIONE: Aggiorna il contactedDate sulla Conversation stessa
+            conversation.setContactedDate(LocalDateTime.now());
+            conversationRepository.save(conversation);
+
+            // Aggiorna anche il PatientRecord se esiste
             Optional<PatientRecord> recordOpt = patientRecordRepository
                     .findByPatientMobilePhone(conversation.getUser().getMobilePhone());
 
             if (recordOpt.isPresent()) {
                 PatientRecord record = recordOpt.get();
-                record.markAsContacted(); // Using the method from enhanced entity
+                record.markAsContacted();
                 patientRecordRepository.save(record);
             }
 
@@ -89,13 +93,17 @@ public class DashboardController {
 
             Conversation conversation = conversationOpt.get();
 
-            // Find PatientRecord for this conversation using the new repository method
+            // CORREZIONE: Rimuovi il contactedDate dalla Conversation
+            conversation.setContactedDate(null);
+            conversationRepository.save(conversation);
+
+            // Aggiorna anche il PatientRecord se esiste
             Optional<PatientRecord> recordOpt = patientRecordRepository
                     .findByPatientMobilePhone(conversation.getUser().getMobilePhone());
 
             if (recordOpt.isPresent()) {
                 PatientRecord record = recordOpt.get();
-                record.markAsUnread(); // Using the method from enhanced entity
+                record.markAsUnread();
                 patientRecordRepository.save(record);
             }
 

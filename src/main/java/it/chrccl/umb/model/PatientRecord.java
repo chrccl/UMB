@@ -47,6 +47,8 @@ public class PatientRecord {
     private String urgency;
     private String interestLevel;
     private String consultationRequested;
+    // AGGIUNTO: Campo per orario preferito di contatto
+    private String preferredContactTime;
     private String otherNotes;
 
     // Additional fields for better dashboard functionality
@@ -88,7 +90,7 @@ public class PatientRecord {
     // Helper method to update fields from another PatientRecord
     public void updateFrom(PatientRecord other) {
         if (other == null) return;
-        
+
         // Only update non-null and non-empty values
         if (other.getMainGoal() != null && !other.getMainGoal().trim().isEmpty()) {
             this.mainGoal = other.getMainGoal();
@@ -141,10 +143,14 @@ public class PatientRecord {
         if (other.getConsultationRequested() != null && !other.getConsultationRequested().trim().isEmpty()) {
             this.consultationRequested = other.getConsultationRequested();
         }
+        // AGGIUNTO: Aggiornamento campo orario preferito
+        if (other.getPreferredContactTime() != null && !other.getPreferredContactTime().trim().isEmpty()) {
+            this.preferredContactTime = other.getPreferredContactTime();
+        }
         if (other.getOtherNotes() != null && !other.getOtherNotes().trim().isEmpty()) {
             this.otherNotes = other.getOtherNotes();
         }
-        
+
         this.updatedAt = LocalDateTime.now();
     }
 }
