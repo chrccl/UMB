@@ -30,7 +30,16 @@ public class PatientRecord {
     private LocalDateTime contactedDate;
     private Boolean isContacted = false;
 
+    // === CAMPI COMUNI ===
     private String mainGoal;
+    private String estimatedBudget;
+    private String urgency;
+    private String interestLevel;
+    private String consultationRequested;
+    private String preferredContactTime;
+    private String otherNotes;
+
+    // === CAMPI SMAGLIATURE ===
     private String duration;
     private String locations;
     private String color;
@@ -43,13 +52,22 @@ public class PatientRecord {
     private String knownDeficiencies;
     private String medications;
     private String smokingDrinking;
-    private String estimatedBudget;
-    private String urgency;
-    private String interestLevel;
-    private String consultationRequested;
-    // AGGIUNTO: Campo per orario preferito di contatto
-    private String preferredContactTime;
-    private String otherNotes;
+
+    // === CAMPI LONGEVITY ===
+    private String city;
+    private String lifestyle;
+    private String medicalConditions;
+    private String mainProblem; // Infiammazioni, stress ossidativo, etc.
+
+    // === CAMPI MICROLIPOSUZIONE ===
+    private String treatmentAreas; // Zone da trattare
+    private String height; // in cm
+    private String weight; // in kg
+    private String weightStable; // Peso stabile da almeno 6 mesi?
+    private String allergies;
+    private String bloodCoagulation; // Problemi di coagulazione
+    private String preexistingConditions;
+    private String photosSent; // Se ha inviato foto
 
     // Additional fields for better dashboard functionality
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -68,89 +86,70 @@ public class PatientRecord {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Helper method to determine if patient was contacted
     public Boolean getIsContacted() {
         return this.contactedDate != null;
     }
 
-    // Helper method to mark as contacted
     public void markAsContacted() {
         this.contactedDate = LocalDateTime.now();
         this.isContacted = true;
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Helper method to mark as unread
     public void markAsUnread() {
         this.contactedDate = null;
         this.isContacted = false;
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Helper method to update fields from another PatientRecord
     public void updateFrom(PatientRecord other) {
         if (other == null) return;
 
-        // Only update non-null and non-empty values
-        if (other.getMainGoal() != null && !other.getMainGoal().trim().isEmpty()) {
-            this.mainGoal = other.getMainGoal();
-        }
-        if (other.getDuration() != null && !other.getDuration().trim().isEmpty()) {
-            this.duration = other.getDuration();
-        }
-        if (other.getLocations() != null && !other.getLocations().trim().isEmpty()) {
-            this.locations = other.getLocations();
-        }
-        if (other.getColor() != null && !other.getColor().trim().isEmpty()) {
-            this.color = other.getColor();
-        }
-        if (other.getTriggeringEvent() != null && !other.getTriggeringEvent().trim().isEmpty()) {
-            this.triggeringEvent = other.getTriggeringEvent();
-        }
-        if (other.getWeightChanges() != null && !other.getWeightChanges().trim().isEmpty()) {
-            this.weightChanges = other.getWeightChanges();
-        }
-        if (other.getPastTreatments() != null && !other.getPastTreatments().trim().isEmpty()) {
-            this.pastTreatments = other.getPastTreatments();
-        }
-        if (other.getTreatmentResults() != null && !other.getTreatmentResults().trim().isEmpty()) {
-            this.treatmentResults = other.getTreatmentResults();
-        }
-        if (other.getDietDescription() != null && !other.getDietDescription().trim().isEmpty()) {
-            this.dietDescription = other.getDietDescription();
-        }
-        if (other.getPhysicalActivity() != null && !other.getPhysicalActivity().trim().isEmpty()) {
-            this.physicalActivity = other.getPhysicalActivity();
-        }
-        if (other.getKnownDeficiencies() != null && !other.getKnownDeficiencies().trim().isEmpty()) {
-            this.knownDeficiencies = other.getKnownDeficiencies();
-        }
-        if (other.getMedications() != null && !other.getMedications().trim().isEmpty()) {
-            this.medications = other.getMedications();
-        }
-        if (other.getSmokingDrinking() != null && !other.getSmokingDrinking().trim().isEmpty()) {
-            this.smokingDrinking = other.getSmokingDrinking();
-        }
-        if (other.getEstimatedBudget() != null && !other.getEstimatedBudget().trim().isEmpty()) {
-            this.estimatedBudget = other.getEstimatedBudget();
-        }
-        if (other.getUrgency() != null && !other.getUrgency().trim().isEmpty()) {
-            this.urgency = other.getUrgency();
-        }
-        if (other.getInterestLevel() != null && !other.getInterestLevel().trim().isEmpty()) {
-            this.interestLevel = other.getInterestLevel();
-        }
-        if (other.getConsultationRequested() != null && !other.getConsultationRequested().trim().isEmpty()) {
-            this.consultationRequested = other.getConsultationRequested();
-        }
-        // AGGIUNTO: Aggiornamento campo orario preferito
-        if (other.getPreferredContactTime() != null && !other.getPreferredContactTime().trim().isEmpty()) {
-            this.preferredContactTime = other.getPreferredContactTime();
-        }
-        if (other.getOtherNotes() != null && !other.getOtherNotes().trim().isEmpty()) {
-            this.otherNotes = other.getOtherNotes();
-        }
+        // Common fields
+        updateField(other.getMainGoal(), val -> this.mainGoal = val);
+        updateField(other.getEstimatedBudget(), val -> this.estimatedBudget = val);
+        updateField(other.getUrgency(), val -> this.urgency = val);
+        updateField(other.getInterestLevel(), val -> this.interestLevel = val);
+        updateField(other.getConsultationRequested(), val -> this.consultationRequested = val);
+        updateField(other.getPreferredContactTime(), val -> this.preferredContactTime = val);
+        updateField(other.getOtherNotes(), val -> this.otherNotes = val);
+
+        // Stretch marks fields
+        updateField(other.getDuration(), val -> this.duration = val);
+        updateField(other.getLocations(), val -> this.locations = val);
+        updateField(other.getColor(), val -> this.color = val);
+        updateField(other.getTriggeringEvent(), val -> this.triggeringEvent = val);
+        updateField(other.getWeightChanges(), val -> this.weightChanges = val);
+        updateField(other.getPastTreatments(), val -> this.pastTreatments = val);
+        updateField(other.getTreatmentResults(), val -> this.treatmentResults = val);
+        updateField(other.getDietDescription(), val -> this.dietDescription = val);
+        updateField(other.getPhysicalActivity(), val -> this.physicalActivity = val);
+        updateField(other.getKnownDeficiencies(), val -> this.knownDeficiencies = val);
+        updateField(other.getMedications(), val -> this.medications = val);
+        updateField(other.getSmokingDrinking(), val -> this.smokingDrinking = val);
+
+        // Longevity fields
+        updateField(other.getCity(), val -> this.city = val);
+        updateField(other.getLifestyle(), val -> this.lifestyle = val);
+        updateField(other.getMedicalConditions(), val -> this.medicalConditions = val);
+        updateField(other.getMainProblem(), val -> this.mainProblem = val);
+
+        // Microliposuction fields
+        updateField(other.getTreatmentAreas(), val -> this.treatmentAreas = val);
+        updateField(other.getHeight(), val -> this.height = val);
+        updateField(other.getWeight(), val -> this.weight = val);
+        updateField(other.getWeightStable(), val -> this.weightStable = val);
+        updateField(other.getAllergies(), val -> this.allergies = val);
+        updateField(other.getBloodCoagulation(), val -> this.bloodCoagulation = val);
+        updateField(other.getPreexistingConditions(), val -> this.preexistingConditions = val);
+        updateField(other.getPhotosSent(), val -> this.photosSent = val);
 
         this.updatedAt = LocalDateTime.now();
+    }
+
+    private void updateField(String value, java.util.function.Consumer<String> setter) {
+        if (value != null && !value.trim().isEmpty()) {
+            setter.accept(value);
+        }
     }
 }
