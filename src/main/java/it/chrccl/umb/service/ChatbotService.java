@@ -31,9 +31,6 @@ public class ChatbotService {
     private final String twilioFrom;
     private final String twilioMSGServiceId;
 
-    // Cache per memorizzare quale servizio usare per ogni utente
-    private final Map<String, String> userServiceCache = new HashMap<>();
-
     public ChatbotService(
             UserRepository userRepository,
             ConversationRepository conversationRepository,
@@ -62,8 +59,8 @@ public class ChatbotService {
     }
 
     /**
-     * Handle an incoming user message with intelligent routing.
-     * Usa il RouterService per capire quale servizio utilizzare.
+     * Handle an incoming user message with AI-powered dynamic routing.
+     * Usa OpenAI (RouterService) per determinare intelligentemente quale servizio utilizzare.
      */
     @Transactional
     public void handleIncomingWhatsapp(String fromWhatsappNumber, String incomingText) throws Exception {
@@ -110,10 +107,10 @@ public class ChatbotService {
             convoTexts.add(who + ": " + m.getText());
         }
 
-        // Determina quale servizio usare
-        String serviceToUse = determineService(userPhone, convoTexts, user);
+        // Usa il Router per determinare quale servizio usare (AI-powered routing)
+        String serviceToUse = determineServiceWithAI(convoTexts, user);
 
-        System.out.println("Using service: " + serviceToUse + " for user: " + userPhone);
+        System.out.println("AI-determined service: " + serviceToUse + " for user: " + userPhone);
 
         // Get the appropriate OpenAI service
         OpenAiService openAiService = getOpenAiService(serviceToUse);
@@ -123,19 +120,6 @@ public class ChatbotService {
 
         // Call OpenAI to extract info and get reply
         OpenAiService.ExtractionResult result = openAiService.extractPatientRecordFromConversation(convoTexts, user);
-
-        // Se il router ha rilevato un servizio specifico, aggiorna la cache
-        if (result.detectedService != null && !result.detectedService.isEmpty()) {
-            String detectedService = mapDetectedServiceToServiceId(result.detectedService);
-            if (detectedService != null) {
-                userServiceCache.put(userPhone, detectedService);
-                System.out.println("Router detected service: " + detectedService + " for user: " + userPhone);
-
-                // Se abbiamo appena rilevato il servizio, richiamiamo con il servizio corretto
-                openAiService = getOpenAiService(detectedService);
-                result = openAiService.extractPatientRecordFromConversation(convoTexts, user);
-            }
-        }
 
         // Save/Update patient record
         PatientRecord pr = result.patientRecord;
@@ -171,28 +155,61 @@ public class ChatbotService {
     }
 
     /**
-     * Determina quale servizio usare per questo utente.
-     * Se l'utente ha già un servizio assegnato nella cache, usa quello.
-     * Altrimenti, usa il RouterService.
+     * Determina intelligentemente quale servizio usare chiamando il RouterService (OpenAI).
+     * Il Router analizza la conversazione e decide quale servizio è più appropriato.
      */
-    private String determineService(String userPhone, List<String> convoTexts, User user) {
-        // Se abbiamo già determinato il servizio per questo utente, usalo
-        if (userServiceCache.containsKey(userPhone)) {
-            return userServiceCache.get(userPhone);
-        }
+    private String determineServiceWithAI(List<String> convoTexts, User user) {
+        try {
+            // Usa sempre il Router per determinare il servizio
+            OpenAiService routerService = getOpenAiService(Issue.ROUTER_SERVICE);
+            if (routerService == null) {
+                System.err.println("RouterService not found, falling back to ROUTER_SERVICE");
+                return Issue.ROUTER_SERVICE;
+            }
 
-        // Altrimenti, usa il router
-        return Issue.ROUTER_SERVICE;
+            // Chiama il router per analizzare la conversazione
+            OpenAiService.ExtractionResult routerResult =
+                    routerService.extractPatientRecordFromConversation(convoTexts, user);
+
+            // Il router ha rilevato un servizio specifico?
+            if (routerResult.detectedService != null && !routerResult.detectedService.trim().isEmpty()) {
+                String detectedService = routerResult.detectedService.trim().toUpperCase();
+
+                System.out.println("Router detected service: " + detectedService);
+
+                // Mappa il servizio rilevato al service ID corretto
+                String serviceId = mapDetectedServiceToServiceId(detectedService);
+
+                if (serviceId != null) {
+                    // Se il router ha rilevato un servizio specifico, usalo
+                    return serviceId;
+                } else {
+                    System.out.println("Unknown service detected: " + detectedService + ", staying with router");
+                    return Issue.ROUTER_SERVICE;
+                }
+            }
+
+            // Se il router non ha rilevato nessun servizio specifico, continua con il router
+            System.out.println("No specific service detected, continuing with router");
+            return Issue.ROUTER_SERVICE;
+
+        } catch (Exception e) {
+            System.err.println("Error determining service with AI: " + e.getMessage());
+            e.printStackTrace();
+            // In caso di errore, usa il router come fallback
+            return Issue.ROUTER_SERVICE;
+        }
     }
 
     /**
      * Mappa il servizio rilevato dal router al service ID corretto.
      */
     private String mapDetectedServiceToServiceId(String detectedService) {
-        return switch (detectedService.toUpperCase()) {
+        return switch (detectedService) {
             case "STRETCHMARKS" -> Issue.STRETCHMARKS_SERVICE;
             case "LONGEVITY" -> Issue.LONGEVITY_SERVICE;
             case "MICROLIPOSUCTION" -> Issue.MICROLIPOSUCTION_SERVICE;
+            case "ESCALATION" -> Issue.ROUTER_SERVICE; // L'escalation viene gestita dal router stesso
             default -> null;
         };
     }
